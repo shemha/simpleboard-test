@@ -20,7 +20,8 @@ class PostController extends Controller
         $posts = Post::all();
         
         // resources/views/postsディレクトリにあるビュー名'index'のbladeファイルを表示
-        return view('posts.index');
+        // compact関数でキー'posts'に$postsの値を代入
+        return view('posts.index', compact('posts'));
     }
 
     /**
@@ -48,6 +49,12 @@ class PostController extends Controller
     // 受け取ったパラメータは$request内に保存され、$request->input('title')のようにパラメータを属性ごとに取り出せる
     public function store(Request $request)
     {
+        // 空欄でない事を確認
+        $request->validate([
+            // 255文字以内
+            'title' => 'required|max:255',
+            'content' => 'required',
+        ]);
         // 新しいPostモデルの空のレコードを作成
         $post = new Post();
         // $requestに保存されているパラメータをPostモデルのカラムごとに取り出す
@@ -57,7 +64,6 @@ class PostController extends Controller
         $post->content = $request->input('content');
         // 作成したモデルのデータをラベルごとに当てはめて保存
         $post->save();
-
         // 最後に/posts/:idというURLへリダイレクト
         // キーidにPostモデルのidを代入し、そのidをURLの末端パス名にする
         // with関数でフラッシュメッセージ(名前:messageと表示するメッセージ)を作成
@@ -71,10 +77,12 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
 
+    // showアクションのビュー
     // /posts/:idのビューの作成
     // 引数$postで/posts/:idから自動的に該当する投稿データを取得
     public function show(Post $post)
     {
+        // resources/views/postsディレクトリにあるビュー名'show'のbladeファイルを表示
         // compact関数でキー'post'に引数$postの値を代入
         return view('posts.show', compact('post'));
     }
@@ -86,6 +94,7 @@ class PostController extends Controller
         // Postモデルからidを検索して$postへ代入
         $post = Post::findOrFail($id);
 
+        // resources/views/postsディレクトリにあるビュー名'show'のbladeファイルを表示
         // compact関数でキー'post'に引数$postの値を代入
         return view('posts.show', compact('post'));
     }
@@ -97,8 +106,14 @@ class PostController extends Controller
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
+
+    // editアクションのビュー
+    // /posts/:idのビューの編集
+    // 引数$postで/posts/:idから自動的に該当する投稿データを取得
     public function edit(Post $post)
     {
+        // resources/views/postsディレクトリにあるビュー名'edit'のbladeファイルを表示
+        // compact関数でキー'post'に引数$postの値を代入
         return view('posts.edit', compact('post'));
     }
 
@@ -115,10 +130,22 @@ class PostController extends Controller
     // 受け取ったパラメータは$request内に保存され、$request->input('title')のようにパラメータを属性ごとに取り出せる
     public function update(Request $request, Post $post)
     {
+        // 空欄でない事を確認
+        $request->validate([
+            // 255文字以内
+            'title' => 'required|max:255',
+            'content' => 'required',
+        ]);
+        // $requestに保存されているパラメータをPostモデルをカラムごとに再代入
+        // $postのtitleにinputタグのname属性'title'からの値を上書き
         $post->title = $request->input('title');
+        // $postのtitleにinputタグのname属性'content'からの値を上書き
         $post->content = $request->input('content');
+        // 新しいレコードをPostモデルに保存
         $post->save();
-
+        // 最後に/posts/:idというURLへリダイレクト
+        // キーidにPostモデルのidを代入し、そのidをURLの末端パス名にする
+        // with関数でフラッシュメッセージ(名前:messageと表示するメッセージ)を作成
         return redirect()->route('posts.show', ['id' => $post->id])->with('message', 'Post was successfully updated.');
     }
 
@@ -130,6 +157,8 @@ class PostController extends Controller
      */
 
     // destroyアクションのビュー
+    // /posts/:idのビューの削除
+    // 引数$postで/posts/:idから自動的に該当する投稿データを取得
     public function destroy(Post $post)
     {
         // $postに一致するレコードをPostモデルから削除

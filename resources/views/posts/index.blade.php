@@ -1,22 +1,45 @@
+@extends('layouts.layouts')
 <!-- 
-    新しい投稿を行うとindexアクションを呼び出す条件式
-    with関数の第一引数でスードニム'message'を指定してフラッシュメッセージを作成
-    成功したらTrueを返すので、成功した時に第二引数のメッセージを表示するようにしている
+resources/views/layouts/layouts.blade.phpを拡張テンプレートとして使用
+引数には"/"の代わりに"."を使用する
 -->
-@if (session('message'))
-    {{ session('message') }}
-@endif
+@section('title', 'Simple Board')
+<!-- resources/views/layouts/layouts.blade.phpの"yield"の引数'title'に'Simple Board'を代入 -->
+@section('content')
+<!-- データ量が多い場合は、"section"と"endsection"で挟んむ -->
+    
+    <h1>Posts</h1>
+    
+    <!-- posts変数は配列のためforeach文で展開 -->
+    @foreach($posts as $post)
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ $post->title }}</h5>
+                <p class="card-text">{{ $post->content }}</p>
 
-<h1>Posts</h1>
+                <div class="d-flex" style="height: 36.4px;">
+                    <!-- aタグのリンクにidを、ハイパーテキストをtitleにして投稿ページへのリンクを作成 -->
+                    <!-- // <a href="/posts/{{ $post->id }}">{{ $post->title }}</a> -->
+                    <!-- aタグのリンクにidを、ハイパーテキストをShowにして投稿ページへのリンクを作成 -->
+                    <a href="/posts/{{ $post->id }}" class="btn btn-outline-primary">Show</a>
+                    <!-- aタグのリンクにidを指定して該当ページの編集へのリンクを作成 -->
+                    <a href="/posts/{{ $post->id }}/edit" class="btn btn-outline-primary">Edit</a>
+                    
+                    <!-- 
+                    /posts/:idごとに削除を実行可能に
+                    POSTリクエスト送信前（type属性がsubmitのbuttonタグが押された時）にコンファームを表示しTrueが選択されたら送信
+                    -->
+                    <form action="/posts/{{ $post->id }}" method="POST" onsubmit="if(confirm('Delete? Are you sure?')) { return true } else {return false };">
+                        <!-- DELETEリクエストを送信 -->
+                        <input type="hidden" name="_method" value="DELETE">
+                        <!-- 送信時にCSRFトークンを生成 -->
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
 
-@foreach($posts as $post)
-    <a href="/posts/{{ $post->id }}">{{ $post->title }}</a>
-    <a href="/posts/{{ $post->id }}/edit">Edit</a>
-    <form action="/posts/{{ $post->id }}" method="POST" onsubmit="if(confirm('Delete? Are you sure?')) { return true } else {return false };">
-        <input type="hidden" name="_method" value="DELETE">
-        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-        <button type="submit">Delete</button>
-    </form>
-@endforeach
-
-<a href="/posts/create">New Post</a>
+    <a href="/posts/create">New Post</a>
+@endsection
